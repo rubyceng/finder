@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Finder Material Prototype</title>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Google Sans"', 'Roboto', '"Noto Sans SC"', 'system-ui', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --md-sys-color-primary: #006a6a;
+      --md-sys-color-on-primary: #ffffff;
+      --md-sys-color-primary-container: #9cf1f1;
+      --md-sys-color-on-primary-container: #002020;
+      --md-sys-color-secondary: #4a6363;
+      --md-sys-color-on-secondary: #ffffff;
+      --md-sys-color-secondary-container: #cde8e7;
+      --md-sys-color-on-secondary-container: #051f1f;
+      --md-sys-color-tertiary: #4b5f7a;
+      --md-sys-color-on-tertiary: #ffffff;
+      --md-sys-color-tertiary-container: #d3e3ff;
+      --md-sys-color-on-tertiary-container: #021a32;
+      --md-sys-color-error: #ba1a1a;
+      --md-sys-color-on-error: #ffffff;
+      --md-sys-color-surface: #f6fbfa;
+      --md-sys-color-surface-container: #e8f0ef;
+      --md-sys-color-surface-container-high: #e1e9e8;
+      --md-sys-color-surface-container-highest: #dbe3e2;
+      --md-sys-color-surface-variant: #dae4e3;
+      --md-sys-color-on-surface: #101414;
+      --md-sys-color-on-surface-variant: #3f4847;
+      --md-sys-color-outline: #707978;
+      --md-sys-color-inverse-surface: #2d3131;
+      --md-sys-color-inverse-on-surface: #f0f5f4;
+      --md-sys-color-shadow: #000000;
+    }
+
+    .dark {
+      --md-sys-color-primary: #80d5d5;
+      --md-sys-color-on-primary: #003737;
+      --md-sys-color-primary-container: #004f50;
+      --md-sys-color-on-primary-container: #9cf1f1;
+      --md-sys-color-secondary: #b1cccb;
+      --md-sys-color-on-secondary: #1c3534;
+      --md-sys-color-secondary-container: #334b4b;
+      --md-sys-color-on-secondary-container: #cde8e7;
+      --md-sys-color-tertiary: #b1c8e7;
+      --md-sys-color-on-tertiary: #1b324a;
+      --md-sys-color-tertiary-container: #324862;
+      --md-sys-color-on-tertiary-container: #d3e3ff;
+      --md-sys-color-error: #ffb4ab;
+      --md-sys-color-on-error: #690005;
+      --md-sys-color-surface: #0f1414;
+      --md-sys-color-surface-container: #1b2020;
+      --md-sys-color-surface-container-high: #252b2a;
+      --md-sys-color-surface-container-highest: #2f3534;
+      --md-sys-color-surface-variant: #3f4847;
+      --md-sys-color-on-surface: #e0e3e2;
+      --md-sys-color-on-surface-variant: #bfc8c7;
+      --md-sys-color-outline: #899392;
+      --md-sys-color-inverse-surface: #e0e3e2;
+      --md-sys-color-inverse-on-surface: #1b2020;
+      --md-sys-color-shadow: #000000;
+    }
+
+    body {
+      font-family: "Google Sans", Roboto, "Noto Sans SC", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .ripple-circle {
+      position: absolute;
+      border-radius: 9999px;
+      background-color: rgba(0, 0, 0, 0.12);
+      transform: scale(0);
+      animation: ripple 520ms ease-out;
+      pointer-events: none;
+    }
+
+    .dark .ripple-circle {
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    @keyframes ripple {
+      to {
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    .page {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 280ms ease;
+    }
+
+    .page.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .overlay {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.96);
+      transition: opacity 280ms ease, transform 280ms ease;
+    }
+
+    .overlay[data-open="true"] {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    .scrim {
+      opacity: 0;
+      transition: opacity 280ms ease;
+    }
+
+    .scrim[data-open="true"] {
+      opacity: 1;
+    }
+
+    .sheet {
+      transform: translateY(100%);
+      transition: transform 300ms ease;
+    }
+
+    .sheet[data-open="true"] {
+      transform: translateY(0);
+    }
+
+    .selection-mode #library-appbar,
+    .selection-mode #library-search {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toggle[data-checked="true"] .icon-on {
+      opacity: 1;
+    }
+
+    .toggle[data-checked="true"] .icon-off {
+      opacity: 0;
+    }
+
+    .toggle[data-checked="false"] .icon-on {
+      opacity: 0;
+    }
+
+    .toggle[data-checked="false"] .icon-off {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body class="h-full bg-[color:var(--md-sys-color-surface)] text-[color:var(--md-sys-color-on-surface)]">
+  <div id="app" class="h-full flex flex-col">
+    <main class="relative flex-1">
+      <section id="page-library" class="page active absolute inset-0 overflow-y-auto pb-28 no-scrollbar">
+        <div id="library-appbar" class="sticky top-0 z-30 transition-all duration-300">
+          <div id="library-appbar-inner" class="px-4 pt-6 pb-4 bg-[color:var(--md-sys-color-surface)]">
+            <div class="flex items-center justify-between">
+              <div>
+                <div id="library-title" class="text-3xl font-semibold tracking-tight">Finder</div>
+                <div id="library-subtitle" class="mt-1 text-sm text-[color:var(--md-sys-color-on-surface-variant)] transition-all duration-300 overflow-hidden max-h-10">你的说明书书架</div>
+              </div>
+              <button id="profile-button" class="h-12 w-12 rounded-full bg-[color:var(--md-sys-color-surface-container-high)] text-sm font-semibold ripple flex items-center justify-center">
+                林
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div id="library-search" class="sticky top-20 z-20 px-4 pt-2 pb-3 bg-[color:var(--md-sys-color-surface)]">
+          <button id="search-trigger" class="w-full h-12 rounded-full bg-[color:var(--md-sys-color-surface-container-high)] flex items-center gap-3 px-4 text-[color:var(--md-sys-color-on-surface-variant)] ripple active:scale-[0.99] transition">
+            <i data-lucide="search" class="w-5 h-5"></i>
+            <span class="text-sm">搜索说明书、品牌或房间</span>
+          </button>
+          <div class="mt-3 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+            <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] ripple">客厅</button>
+            <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)] ripple">保修中</button>
+            <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-tertiary-container)] text-[color:var(--md-sys-color-on-tertiary-container)] ripple">PDF</button>
+            <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)] ripple">家电</button>
+            <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)] ripple">汽车</button>
+          </div>
+        </div>
+
+        <div class="px-4 pt-2 pb-10">
+          <div class="columns-2 lg:columns-3 gap-3">
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-1" data-title="索尼 Bravia XR 电视" data-meta="客厅 · 2024/06/20 更新" data-tags="影音,4K,保修中" data-cover="linear-gradient(135deg, #38bdf8, #0ea5e9)">
+              <div class="h-36 relative" style="background: linear-gradient(135deg, #38bdf8, #0ea5e9);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">BRAVIA XR</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">X90L</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">索尼 Bravia XR 电视</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">上海市 · 2024/06/20</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]">影音</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]">4K</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-2" data-title="小米空气净化器 4 Pro" data-meta="卧室 · 2024/05/18 更新" data-tags="空气,滤芯,家电" data-cover="linear-gradient(135deg, #34d399, #10b981)">
+              <div class="h-44 relative" style="background: linear-gradient(135deg, #34d399, #10b981);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">Smart Air</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">4 Pro</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">小米空气净化器 4 Pro</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">浦东 · 2024/05/18</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-tertiary-container)] text-[color:var(--md-sys-color-on-tertiary-container)]">滤芯</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]">卧室</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-3" data-title="松下 Lumix S5 相机" data-meta="摄影包 · 2024/06/01 更新" data-tags="相机,镜头,旅行" data-cover="linear-gradient(135deg, #f97316, #f43f5e)">
+              <div class="h-32 relative" style="background: linear-gradient(135deg, #f97316, #f43f5e);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">Lumix</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">S5</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">松下 Lumix S5 相机</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">徐汇 · 2024/06/01</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]">相机</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]">旅行</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-4" data-title="博世 洗碗机 Series 6" data-meta="厨房 · 2024/04/12 更新" data-tags="厨房,节能,家电" data-cover="linear-gradient(135deg, #60a5fa, #6366f1)">
+              <div class="h-40 relative" style="background: linear-gradient(135deg, #60a5fa, #6366f1);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">Bosch</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">Series 6</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">博世 洗碗机 Series 6</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">静安 · 2024/04/12</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]">厨房</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-tertiary-container)] text-[color:var(--md-sys-color-on-tertiary-container)]">节能</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-5" data-title="Dyson V12 Detect Slim" data-meta="玄关 · 2024/05/05 更新" data-tags="清洁,无线,家电" data-cover="linear-gradient(135deg, #22c55e, #84cc16)">
+              <div class="h-36 relative" style="background: linear-gradient(135deg, #22c55e, #84cc16);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">Dyson</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">V12 Detect</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">Dyson V12 Detect Slim</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">闵行 · 2024/05/05</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]">清洁</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)]">无线</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-6" data-title="特斯拉 Model 3 用户手册" data-meta="车库 · 2024/06/10 更新" data-tags="汽车,驾驶,OTA" data-cover="linear-gradient(135deg, #f43f5e, #f97316)">
+              <div class="h-48 relative" style="background: linear-gradient(135deg, #f43f5e, #f97316);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">Tesla</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">Model 3</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">特斯拉 Model 3 用户手册</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">陆家嘴 · 2024/06/10</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-tertiary-container)] text-[color:var(--md-sys-color-on-tertiary-container)]">汽车</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]">OTA</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-7" data-title="华为路由 AX3 Pro" data-meta="书房 · 2024/03/28 更新" data-tags="网络,WiFi 6,智能" data-cover="linear-gradient(135deg, #a855f7, #6366f1)">
+              <div class="h-36 relative" style="background: linear-gradient(135deg, #a855f7, #6366f1);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">HUAWEI</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">AX3 Pro</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">华为路由 AX3 Pro</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">杨浦 · 2024/03/28</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)]">网络</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)]">WiFi 6</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="library-card mb-3 break-inside-avoid rounded-2xl bg-[color:var(--md-sys-color-surface-container)] shadow-sm overflow-hidden ripple transition active:scale-[0.99]" data-id="card-8" data-title="海尔 变频冰箱 BCD-470" data-meta="厨房 · 2024/05/23 更新" data-tags="厨房,节能,保修中" data-cover="linear-gradient(135deg, #38bdf8, #22c55e)">
+              <div class="h-40 relative" style="background: linear-gradient(135deg, #38bdf8, #22c55e);">
+                <div class="absolute top-3 left-3 text-xs text-white/80">Haier</div>
+                <div class="absolute bottom-3 left-3 text-white text-sm font-semibold">BCD-470</div>
+              </div>
+              <div class="p-3 space-y-2">
+                <h3 class="text-sm font-semibold leading-tight">海尔 变频冰箱 BCD-470</h3>
+                <p class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">虹口 · 2024/05/23</p>
+                <div class="flex flex-wrap gap-1">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)]">厨房</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] bg-[color:var(--md-sys-color-tertiary-container)] text-[color:var(--md-sys-color-on-tertiary-container)]">节能</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-explore" class="page absolute inset-0 overflow-y-auto pb-28 no-scrollbar">
+        <div class="sticky top-0 z-20 px-4 pt-5 pb-3 bg-[color:var(--md-sys-color-surface)]">
+          <div class="text-xl font-semibold">Explore</div>
+          <div class="text-sm text-[color:var(--md-sys-color-on-surface-variant)]">发现外部资源与社区互助</div>
+        </div>
+
+        <div class="px-4 pt-2 pb-10 space-y-6">
+          <div>
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold">热门推荐</h3>
+              <button class="h-12 px-3 rounded-full text-sm text-[color:var(--md-sys-color-primary)] flex items-center justify-center ripple">更多</button>
+            </div>
+            <div id="featured-carousel" class="mt-3 flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory">
+              <div class="min-w-[280px] h-44 rounded-2xl shadow-md overflow-hidden snap-center bg-[color:var(--md-sys-color-surface-container-high)] relative">
+                <div class="absolute inset-0" data-parallax style="background: linear-gradient(135deg, #8b5cf6, #22d3ee);"></div>
+                <div class="relative h-full p-4 flex flex-col justify-between">
+                  <span class="text-xs uppercase tracking-wide text-white/80">本周精选</span>
+                  <div>
+                    <div class="text-lg font-semibold text-white">家电说明书众筹</div>
+                    <p class="text-xs text-white/80">上海 · 56 位贡献者</p>
+                  </div>
+                </div>
+              </div>
+              <div class="min-w-[280px] h-44 rounded-2xl shadow-md overflow-hidden snap-center bg-[color:var(--md-sys-color-surface-container-high)] relative">
+                <div class="absolute inset-0" data-parallax style="background: linear-gradient(135deg, #10b981, #0ea5e9);"></div>
+                <div class="relative h-full p-4 flex flex-col justify-between">
+                  <span class="text-xs uppercase tracking-wide text-white/80">新品趋势</span>
+                  <div>
+                    <div class="text-lg font-semibold text-white">智慧厨房场景</div>
+                    <p class="text-xs text-white/80">南京路 · 24 个教程</p>
+                  </div>
+                </div>
+              </div>
+              <div class="min-w-[280px] h-44 rounded-2xl shadow-md overflow-hidden snap-center bg-[color:var(--md-sys-color-surface-container-high)] relative">
+                <div class="absolute inset-0" data-parallax style="background: linear-gradient(135deg, #f97316, #ef4444);"></div>
+                <div class="relative h-full p-4 flex flex-col justify-between">
+                  <span class="text-xs uppercase tracking-wide text-white/80">热榜</span>
+                  <div>
+                    <div class="text-lg font-semibold text-white">无人机维修指南</div>
+                    <p class="text-xs text-white/80">滨江 · 18 位导师</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <h3 class="text-base font-semibold">求助悬赏</h3>
+              <button class="h-12 px-3 rounded-full text-sm text-[color:var(--md-sys-color-primary)] flex items-center justify-center ripple">查看全部</button>
+            </div>
+            <div class="mt-3 space-y-2">
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm ripple">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-primary-container)] flex items-center justify-center text-sm font-semibold text-[color:var(--md-sys-color-on-primary-container)]">张</div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">张伟 · 需要飞利浦空气炸锅说明书</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">15 分钟前 · 上海市</div>
+                </div>
+                <button class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] text-xs font-semibold ripple">响应</button>
+              </div>
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm ripple">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-tertiary-container)] flex items-center justify-center text-sm font-semibold text-[color:var(--md-sys-color-on-tertiary-container)]">林</div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">林思意 · 寻找徕卡镜头校准指南</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">1 小时前 · 陆家嘴</div>
+                </div>
+                <button class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] text-xs font-semibold ripple">响应</button>
+              </div>
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm ripple">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-secondary-container)] flex items-center justify-center text-sm font-semibold text-[color:var(--md-sys-color-on-secondary-container)]">周</div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">周婷 · 想要 LG OLED 77 使用技巧</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">今天 · 静安寺</div>
+                </div>
+                <button class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] text-xs font-semibold ripple">响应</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-base font-semibold">众包搜索</h3>
+            <div class="mt-3 rounded-2xl bg-[color:var(--md-sys-color-surface-container)] p-3 shadow-sm">
+              <div class="h-12 rounded-full bg-[color:var(--md-sys-color-surface-container-high)] flex items-center gap-2 px-4">
+                <i data-lucide="search" class="w-4 h-4 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+                <input id="crowd-search" class="flex-1 bg-transparent text-sm outline-none" placeholder="例如：Sony 电视" />
+              </div>
+              <div id="crowd-results" class="mt-3 space-y-2">
+                <div class="crowd-item min-h-[56px] rounded-xl bg-[color:var(--md-sys-color-surface-container-highest)] px-3 py-2 flex items-center gap-3" data-query="sony 电视 bravia">
+                  <div class="h-8 w-8 rounded-full bg-[color:var(--md-sys-color-primary-container)] flex items-center justify-center">
+                    <i data-lucide="tv" class="w-4 h-4 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">Sony X90L 电视</div>
+                    <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">已收集 13 份文档</div>
+                  </div>
+                  <button class="add-to-library h-12 px-4 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-xs font-semibold ripple" data-title="Sony X90L 电视">Add</button>
+                </div>
+                <div class="crowd-item min-h-[56px] rounded-xl bg-[color:var(--md-sys-color-surface-container-highest)] px-3 py-2 flex items-center gap-3" data-query="sony soundbar 音响">
+                  <div class="h-8 w-8 rounded-full bg-[color:var(--md-sys-color-tertiary-container)] flex items-center justify-center">
+                    <i data-lucide="speaker" class="w-4 h-4 text-[color:var(--md-sys-color-on-tertiary-container)]"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">Sony HT-A7000 Soundbar</div>
+                    <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">已更新 · 3 天前</div>
+                  </div>
+                  <button class="add-to-library h-12 px-4 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-xs font-semibold ripple" data-title="Sony HT-A7000 Soundbar">Add</button>
+                </div>
+                <div class="crowd-item min-h-[56px] rounded-xl bg-[color:var(--md-sys-color-surface-container-highest)] px-3 py-2 flex items-center gap-3" data-query="sony tv oled a95">
+                  <div class="h-8 w-8 rounded-full bg-[color:var(--md-sys-color-secondary-container)] flex items-center justify-center">
+                    <i data-lucide="film" class="w-4 h-4 text-[color:var(--md-sys-color-on-secondary-container)]"></i>
+                  </div>
+                  <div class="flex-1">
+                    <div class="text-sm font-medium">Sony A95L OLED</div>
+                    <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">社区评分 4.9</div>
+                  </div>
+                  <button class="add-to-library h-12 px-4 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-xs font-semibold ripple" data-title="Sony A95L OLED">Add</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="page-settings" class="page absolute inset-0 overflow-y-auto pb-28 no-scrollbar">
+        <div class="sticky top-0 z-20 px-4 pt-5 pb-3 bg-[color:var(--md-sys-color-surface)]">
+          <div class="text-xl font-semibold">Settings</div>
+          <div class="text-sm text-[color:var(--md-sys-color-on-surface-variant)]">管理同步、存储与偏好</div>
+        </div>
+
+        <div class="px-4 pt-2 pb-10 space-y-6">
+          <div>
+            <div class="text-xs uppercase tracking-widest text-[color:var(--md-sys-color-on-surface-variant)] px-2">同步中心</div>
+            <div class="mt-2 space-y-2">
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-primary-container)] flex items-center justify-center">
+                  <i data-lucide="cloud" class="w-5 h-5 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">Google Drive</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">已连接 · 2.4 GB 同步</div>
+                </div>
+                <button class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] text-xs font-semibold ripple">管理</button>
+              </div>
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-tertiary-container)] flex items-center justify-center">
+                  <i data-lucide="database" class="w-5 h-5 text-[color:var(--md-sys-color-on-tertiary-container)]"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">Supabase</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">最近同步 · 5 分钟前</div>
+                </div>
+                <button class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] text-xs font-semibold ripple">查看</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="text-xs uppercase tracking-widest text-[color:var(--md-sys-color-on-surface-variant)] px-2">存储管理</div>
+            <div class="mt-2 space-y-2">
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-secondary-container)] flex items-center justify-center">
+                  <i data-lucide="hard-drive" class="w-5 h-5 text-[color:var(--md-sys-color-on-secondary-container)]"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">Free up space</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">仅保留云端，释放 3.2 GB</div>
+                </div>
+                <button class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-xs font-semibold ripple">清理</button>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="text-xs uppercase tracking-widest text-[color:var(--md-sys-color-on-surface-variant)] px-2">偏好设置</div>
+            <div class="mt-2 space-y-2">
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-primary-container)] flex items-center justify-center">
+                  <i data-lucide="moon" class="w-5 h-5 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">深色模式</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">手动切换界面风格</div>
+                </div>
+                <label class="toggle relative inline-flex items-center" data-checked="false">
+                  <input id="toggle-dark" type="checkbox" class="sr-only peer" />
+                  <div class="w-12 h-7 rounded-full bg-[color:var(--md-sys-color-surface-container-highest)] peer-checked:bg-[color:var(--md-sys-color-primary-container)] transition"></div>
+                  <span class="absolute left-1 top-1 h-5 w-5 rounded-full bg-[color:var(--md-sys-color-surface)] shadow-sm transition peer-checked:translate-x-5 flex items-center justify-center">
+                    <i data-lucide="check" class="icon-on absolute w-3 h-3 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+                    <i data-lucide="minus" class="icon-off absolute w-3 h-3 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+                  </span>
+                </label>
+              </div>
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-tertiary-container)] flex items-center justify-center">
+                  <i data-lucide="activity" class="w-5 h-5 text-[color:var(--md-sys-color-on-tertiary-container)]"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">触感反馈</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">确认操作时轻震动</div>
+                </div>
+                <label class="toggle relative inline-flex items-center" data-checked="true">
+                  <input id="toggle-haptic" type="checkbox" class="sr-only peer" checked />
+                  <div class="w-12 h-7 rounded-full bg-[color:var(--md-sys-color-primary-container)] transition"></div>
+                  <span class="absolute left-1 top-1 h-5 w-5 rounded-full bg-[color:var(--md-sys-color-surface)] shadow-sm transition peer-checked:translate-x-5 flex items-center justify-center">
+                    <i data-lucide="check" class="icon-on absolute w-3 h-3 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+                    <i data-lucide="minus" class="icon-off absolute w-3 h-3 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+                  </span>
+                </label>
+              </div>
+              <div class="min-h-[64px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3 shadow-sm">
+                <div class="h-10 w-10 rounded-full bg-[color:var(--md-sys-color-secondary-container)] flex items-center justify-center">
+                  <i data-lucide="bell" class="w-5 h-5 text-[color:var(--md-sys-color-on-secondary-container)]"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm font-medium">同步提醒</div>
+                  <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">每日 9:00 汇总推送</div>
+                </div>
+                <label class="toggle relative inline-flex items-center" data-checked="false">
+                  <input type="checkbox" class="sr-only peer" />
+                  <div class="w-12 h-7 rounded-full bg-[color:var(--md-sys-color-surface-container-highest)] peer-checked:bg-[color:var(--md-sys-color-primary-container)] transition"></div>
+                  <span class="absolute left-1 top-1 h-5 w-5 rounded-full bg-[color:var(--md-sys-color-surface)] shadow-sm transition peer-checked:translate-x-5 flex items-center justify-center">
+                    <i data-lucide="check" class="icon-on absolute w-3 h-3 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+                    <i data-lucide="minus" class="icon-off absolute w-3 h-3 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <button id="fab" class="fixed bottom-24 right-5 z-40 h-14 px-5 rounded-2xl shadow-lg bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] flex items-center gap-2 ripple transition active:scale-[0.98]">
+      <i data-lucide="camera" class="w-5 h-5"></i>
+      <span class="text-sm font-semibold">Scan</span>
+    </button>
+
+    <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 z-40 bg-[color:var(--md-sys-color-surface-container)] backdrop-blur-md border-t border-[color:var(--md-sys-color-surface-variant)]">
+      <div class="mx-auto max-w-md grid grid-cols-3 gap-1 px-4 py-2">
+        <button class="nav-item h-14 rounded-full flex items-center justify-center gap-2 text-[color:var(--md-sys-color-on-surface-variant)] ripple" data-tab="library">
+          <span class="nav-pill px-3 py-2 rounded-full flex items-center gap-2">
+            <i data-lucide="book-open" class="w-5 h-5"></i>
+            <span class="text-xs font-medium">书架</span>
+          </span>
+        </button>
+        <button class="nav-item h-14 rounded-full flex items-center justify-center gap-2 text-[color:var(--md-sys-color-on-surface-variant)] ripple" data-tab="explore">
+          <span class="nav-pill px-3 py-2 rounded-full flex items-center gap-2">
+            <i data-lucide="compass" class="w-5 h-5"></i>
+            <span class="text-xs font-medium">探索</span>
+          </span>
+        </button>
+        <button class="nav-item h-14 rounded-full flex items-center justify-center gap-2 text-[color:var(--md-sys-color-on-surface-variant)] ripple" data-tab="settings">
+          <span class="nav-pill px-3 py-2 rounded-full flex items-center gap-2">
+            <i data-lucide="settings" class="w-5 h-5"></i>
+            <span class="text-xs font-medium">设置</span>
+          </span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <div id="contextual-bar" class="fixed top-0 left-0 right-0 z-50 bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] px-4 py-3 flex items-center justify-between shadow-lg transform -translate-y-full opacity-0 transition">
+    <div class="flex items-center gap-2">
+      <button id="selection-close" class="h-12 w-12 rounded-full ripple">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+      <span id="selection-count" class="text-sm font-semibold">已选择 0 项</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="selection-share" class="h-12 w-12 rounded-full ripple">
+        <i data-lucide="share-2" class="w-5 h-5"></i>
+      </button>
+      <button id="selection-delete" class="h-12 w-12 rounded-full ripple">
+        <i data-lucide="trash-2" class="w-5 h-5"></i>
+      </button>
+    </div>
+  </div>
+
+  <div id="account-scrim" class="scrim fixed inset-0 z-40 bg-black/20 pointer-events-none"></div>
+  <div id="account-menu" class="fixed top-16 right-4 z-50 w-52 rounded-2xl bg-[color:var(--md-sys-color-surface-container-high)] shadow-xl p-2 opacity-0 pointer-events-none transition">
+    <button class="w-full min-h-[48px] flex items-center gap-3 px-3 py-3 rounded-xl ripple hover:bg-[color:var(--md-sys-color-surface-container-highest)]">
+      <i data-lucide="user" class="w-4 h-4"></i>
+      <span class="text-sm">账户信息</span>
+    </button>
+    <button class="w-full min-h-[48px] flex items-center gap-3 px-3 py-3 rounded-xl ripple hover:bg-[color:var(--md-sys-color-surface-container-highest)]">
+      <i data-lucide="badge-check" class="w-4 h-4"></i>
+      <span class="text-sm">升级会员</span>
+    </button>
+    <button class="w-full min-h-[48px] flex items-center gap-3 px-3 py-3 rounded-xl ripple hover:bg-[color:var(--md-sys-color-surface-container-highest)]">
+      <i data-lucide="log-out" class="w-4 h-4"></i>
+      <span class="text-sm">切换账号</span>
+    </button>
+  </div>
+
+  <div id="search-overlay" class="overlay fixed inset-0 z-50 bg-[color:var(--md-sys-color-surface)]">
+    <div class="sticky top-0 z-10 bg-[color:var(--md-sys-color-surface)] px-4 pt-4 pb-3">
+      <div class="flex items-center gap-2">
+        <button id="search-back" class="h-12 w-12 rounded-full ripple flex items-center justify-center">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </button>
+        <div class="flex-1">
+          <div class="h-12 rounded-full bg-[color:var(--md-sys-color-surface-container-high)] flex items-center gap-2 px-4">
+            <i data-lucide="search" class="w-4 h-4 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+            <input id="search-input" class="flex-1 bg-transparent text-sm outline-none" placeholder="搜索说明书" />
+          </div>
+        </div>
+      </div>
+      <div class="mt-3 flex gap-2 overflow-x-auto no-scrollbar">
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] ripple">最近</button>
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)] ripple">扫码导入</button>
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)] ripple">保修卡</button>
+      </div>
+    </div>
+    <div id="search-results" class="px-4 pt-2 pb-24 space-y-2">
+      <div class="search-item min-h-[56px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3" data-query="索尼 bravia 电视">
+        <div class="h-10 w-10 rounded-xl bg-[color:var(--md-sys-color-primary-container)] flex items-center justify-center">
+          <i data-lucide="tv" class="w-5 h-5 text-[color:var(--md-sys-color-on-primary-container)]"></i>
+        </div>
+        <div class="flex-1">
+          <div class="text-sm font-medium">索尼 Bravia XR 电视</div>
+          <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">已在书架 · 上次打开 2 天前</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+      </div>
+      <div class="search-item min-h-[56px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3" data-query="小米 空气净化器 4 pro">
+        <div class="h-10 w-10 rounded-xl bg-[color:var(--md-sys-color-secondary-container)] flex items-center justify-center">
+          <i data-lucide="wind" class="w-5 h-5 text-[color:var(--md-sys-color-on-secondary-container)]"></i>
+        </div>
+        <div class="flex-1">
+          <div class="text-sm font-medium">小米空气净化器 4 Pro</div>
+          <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">卧室 · 过滤网提醒</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+      </div>
+      <div class="search-item min-h-[56px] rounded-2xl bg-[color:var(--md-sys-color-surface-container)] px-3 py-2 flex items-center gap-3" data-query="tesla model 3 用户手册">
+        <div class="h-10 w-10 rounded-xl bg-[color:var(--md-sys-color-tertiary-container)] flex items-center justify-center">
+          <i data-lucide="car" class="w-5 h-5 text-[color:var(--md-sys-color-on-tertiary-container)]"></i>
+        </div>
+        <div class="flex-1">
+          <div class="text-sm font-medium">特斯拉 Model 3 用户手册</div>
+          <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">驾驶辅助 · OTA 更新</div>
+        </div>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-[color:var(--md-sys-color-on-surface-variant)]"></i>
+      </div>
+    </div>
+  </div>
+
+  <div id="reader-view" class="overlay fixed inset-0 z-50 bg-[color:var(--md-sys-color-surface)]">
+    <div class="h-full overflow-y-auto no-scrollbar">
+      <div class="sticky top-0 z-10 bg-[color:var(--md-sys-color-surface)] px-4 pt-4 pb-3 flex items-center justify-between">
+        <button id="reader-back" class="h-12 w-12 rounded-full ripple flex items-center justify-center">
+          <i data-lucide="arrow-left" class="w-5 h-5"></i>
+        </button>
+        <div class="text-sm font-semibold">说明书详情</div>
+        <button class="h-12 w-12 rounded-full ripple flex items-center justify-center">
+          <i data-lucide="share-2" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="px-4 pt-2 pb-24 space-y-4">
+        <div id="reader-cover" class="h-56 rounded-3xl shadow-md"></div>
+        <div>
+          <h2 id="reader-title" class="text-xl font-semibold">索尼 Bravia XR 电视</h2>
+          <p id="reader-meta" class="text-sm text-[color:var(--md-sys-color-on-surface-variant)]">客厅 · 2024/06/20 更新</p>
+        </div>
+        <div id="reader-tags" class="flex flex-wrap gap-2"></div>
+        <div class="rounded-2xl bg-[color:var(--md-sys-color-surface-container)] p-4 space-y-3 shadow-sm">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-sm font-semibold">阅读进度</div>
+              <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">上次停留在 第 18 页</div>
+            </div>
+            <div class="text-sm font-semibold text-[color:var(--md-sys-color-primary)]">62%</div>
+          </div>
+          <div class="h-2 rounded-full bg-[color:var(--md-sys-color-surface-container-highest)] overflow-hidden">
+            <div class="h-full w-2/3 rounded-full bg-[color:var(--md-sys-color-primary)]"></div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="rounded-xl bg-[color:var(--md-sys-color-surface-container-highest)] p-3">
+              <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">收藏标注</div>
+              <div class="text-lg font-semibold">14</div>
+            </div>
+            <div class="rounded-xl bg-[color:var(--md-sys-color-surface-container-highest)] p-3">
+              <div class="text-xs text-[color:var(--md-sys-color-on-surface-variant)]">常见问题</div>
+              <div class="text-lg font-semibold">8</div>
+            </div>
+          </div>
+        </div>
+        <button class="w-full h-12 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-sm font-semibold ripple">打开说明书</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="scan-dialog" class="fixed inset-0 z-[60] pointer-events-none">
+    <div id="scan-scrim" class="scrim absolute inset-0 bg-black/40"></div>
+    <div id="scan-panel" class="absolute inset-3 rounded-3xl bg-[color:var(--md-sys-color-surface)] shadow-xl overflow-hidden transform scale-90 opacity-0 transition duration-300 origin-bottom-right">
+      <div class="h-full flex flex-col">
+        <div class="px-4 py-3 flex items-center justify-between">
+          <button id="scan-close" class="h-12 w-12 rounded-full ripple flex items-center justify-center">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+          <div class="text-sm font-semibold">Scan</div>
+          <button id="scan-done" class="h-12 px-4 rounded-full text-sm font-semibold text-[color:var(--md-sys-color-primary)] flex items-center justify-center ripple">Done</button>
+        </div>
+        <div class="flex-1 px-4 pb-4">
+          <div class="h-full rounded-3xl relative overflow-hidden">
+            <div class="absolute inset-0" style="background: linear-gradient(135deg, rgba(0,0,0,0.35), rgba(0,0,0,0.15)), linear-gradient(135deg, #1e3a8a, #22d3ee);"></div>
+            <div class="absolute inset-6 border-2 border-white/40 rounded-3xl"></div>
+            <div class="absolute bottom-6 left-6 text-white text-sm">对准边缘自动识别</div>
+          </div>
+        </div>
+        <div class="px-4 pb-6">
+          <button class="w-full h-12 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-sm font-semibold ripple">拍摄</button>
+        </div>
+      </div>
+    </div>
+    <div id="scan-sheet" class="sheet absolute left-0 right-0 bottom-0 rounded-t-3xl bg-[color:var(--md-sys-color-surface-container)] p-4 shadow-xl">
+      <div class="w-12 h-1.5 rounded-full bg-[color:var(--md-sys-color-outline)] opacity-40 mx-auto mb-4"></div>
+      <div class="text-sm font-semibold">为扫描件添加标签</div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-primary-container)] text-[color:var(--md-sys-color-on-primary-container)] ripple">电视</button>
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-secondary-container)] text-[color:var(--md-sys-color-on-secondary-container)] ripple">客厅</button>
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-tertiary-container)] text-[color:var(--md-sys-color-on-tertiary-container)] ripple">保修中</button>
+        <button class="h-12 px-4 rounded-full text-xs inline-flex items-center justify-center bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)] ripple">新增</button>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <input class="flex-1 h-12 rounded-full bg-[color:var(--md-sys-color-surface-container-highest)] px-4 text-sm outline-none" placeholder="添加备注" />
+        <button id="scan-save" class="h-12 px-4 rounded-full bg-[color:var(--md-sys-color-primary)] text-[color:var(--md-sys-color-on-primary)] text-sm font-semibold ripple">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="snackbar" class="fixed left-4 right-4 bottom-24 z-50 opacity-0 translate-y-8 pointer-events-none transition">
+    <div class="rounded-full bg-[color:var(--md-sys-color-inverse-surface)] text-[color:var(--md-sys-color-inverse-on-surface)] px-4 py-3 flex items-center justify-between shadow-lg">
+      <span id="snackbar-message" class="text-sm">Added to Library</span>
+      <button id="snackbar-action" class="text-sm font-semibold text-[color:var(--md-sys-color-primary)]">UNDO</button>
+    </div>
+  </div>
+
+  <div class="hidden opacity-100 translate-y-0 scale-100 pointer-events-auto overflow-hidden pt-3 pb-2 max-h-0 mt-0 ring-2 ring-[color:var(--md-sys-color-primary)]"></div>
+
+  <script>
+    const state = {
+      activeTab: 'library',
+      selectionMode: false,
+      selectedCards: new Set(),
+      scrollPositions: {
+        library: 0,
+        explore: 0,
+        settings: 0
+      },
+      haptics: true,
+      snackbarTimer: null
+    };
+
+    const pages = {
+      library: document.getElementById('page-library'),
+      explore: document.getElementById('page-explore'),
+      settings: document.getElementById('page-settings')
+    };
+
+    const navItems = Array.from(document.querySelectorAll('.nav-item'));
+    const fab = document.getElementById('fab');
+    const libraryAppbar = document.getElementById('library-appbar');
+    const libraryAppbarInner = document.getElementById('library-appbar-inner');
+    const libraryTitle = document.getElementById('library-title');
+    const librarySubtitle = document.getElementById('library-subtitle');
+    const contextualBar = document.getElementById('contextual-bar');
+    const selectionCount = document.getElementById('selection-count');
+    const profileButton = document.getElementById('profile-button');
+    const accountMenu = document.getElementById('account-menu');
+    const accountScrim = document.getElementById('account-scrim');
+    const searchOverlay = document.getElementById('search-overlay');
+    const searchInput = document.getElementById('search-input');
+    const searchResults = document.getElementById('search-results');
+    const readerView = document.getElementById('reader-view');
+    const readerTitle = document.getElementById('reader-title');
+    const readerMeta = document.getElementById('reader-meta');
+    const readerTags = document.getElementById('reader-tags');
+    const readerCover = document.getElementById('reader-cover');
+    const scanDialog = document.getElementById('scan-dialog');
+    const scanPanel = document.getElementById('scan-panel');
+    const scanScrim = document.getElementById('scan-scrim');
+    const scanSheet = document.getElementById('scan-sheet');
+    const snackbar = document.getElementById('snackbar');
+    const snackbarMessage = document.getElementById('snackbar-message');
+    const snackbarAction = document.getElementById('snackbar-action');
+
+    const haptic = () => {
+      if (!state.haptics) return;
+      if (navigator.vibrate) {
+        navigator.vibrate(8);
+      }
+    };
+
+    const updateNav = () => {
+      navItems.forEach((item) => {
+        const tab = item.getAttribute('data-tab');
+        const active = tab === state.activeTab;
+        const pill = item.querySelector('.nav-pill');
+        item.classList.toggle('text-[color:var(--md-sys-color-on-surface-variant)]', !active);
+        item.classList.toggle('text-[color:var(--md-sys-color-on-secondary-container)]', active);
+        pill.classList.toggle('bg-[color:var(--md-sys-color-secondary-container)]', active);
+      });
+    };
+
+    const updateFab = () => {
+      fab.classList.toggle('hidden', state.activeTab !== 'library');
+    };
+
+    const setActiveTab = (tab) => {
+      if (state.activeTab === tab) return;
+      const currentPage = pages[state.activeTab];
+      state.scrollPositions[state.activeTab] = currentPage.scrollTop;
+      currentPage.classList.remove('active');
+      const nextPage = pages[tab];
+      nextPage.classList.add('active');
+      nextPage.scrollTop = state.scrollPositions[tab] || 0;
+      state.activeTab = tab;
+      updateNav();
+      updateFab();
+      if (tab !== 'library') {
+        exitSelection();
+      } else {
+        updateAppbar();
+      }
+    };
+
+    navItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        haptic();
+        setActiveTab(item.getAttribute('data-tab'));
+      });
+    });
+
+    const updateAppbar = () => {
+      if (state.activeTab !== 'library') return;
+      const scrollTop = pages.library.scrollTop;
+      const collapsed = scrollTop > 24;
+      libraryAppbar.classList.toggle('shadow-sm', collapsed);
+      libraryAppbarInner.classList.toggle('pt-6', !collapsed);
+      libraryAppbarInner.classList.toggle('pb-4', !collapsed);
+      libraryAppbarInner.classList.toggle('pt-3', collapsed);
+      libraryAppbarInner.classList.toggle('pb-2', collapsed);
+      libraryTitle.classList.toggle('text-3xl', !collapsed);
+      libraryTitle.classList.toggle('text-xl', collapsed);
+      librarySubtitle.classList.toggle('opacity-0', collapsed);
+      librarySubtitle.classList.toggle('max-h-0', collapsed);
+      librarySubtitle.classList.toggle('max-h-10', !collapsed);
+      librarySubtitle.classList.toggle('mt-1', !collapsed);
+      librarySubtitle.classList.toggle('mt-0', collapsed);
+    };
+
+    pages.library.addEventListener('scroll', updateAppbar);
+
+    const openAccountMenu = () => {
+      accountMenu.classList.remove('opacity-0', 'pointer-events-none');
+      accountScrim.classList.remove('pointer-events-none');
+      accountScrim.classList.add('pointer-events-auto');
+      accountScrim.setAttribute('data-open', 'true');
+    };
+
+    const closeAccountMenu = () => {
+      accountMenu.classList.add('opacity-0', 'pointer-events-none');
+      accountScrim.classList.add('pointer-events-none');
+      accountScrim.classList.remove('pointer-events-auto');
+      accountScrim.removeAttribute('data-open');
+    };
+
+    profileButton.addEventListener('click', () => {
+      haptic();
+      if (accountMenu.classList.contains('opacity-0')) {
+        openAccountMenu();
+      } else {
+        closeAccountMenu();
+      }
+    });
+
+    accountScrim.addEventListener('click', closeAccountMenu);
+
+    const lockBody = () => {
+      document.body.classList.add('overflow-hidden');
+    };
+
+    const unlockBody = () => {
+      const hasOverlay = document.querySelector('.overlay[data-open="true"]') || scanDialog.hasAttribute('data-open');
+      if (!hasOverlay) {
+        document.body.classList.remove('overflow-hidden');
+      }
+    };
+
+    const openOverlay = (overlay, focusEl) => {
+      overlay.setAttribute('data-open', 'true');
+      lockBody();
+      if (focusEl) {
+        setTimeout(() => focusEl.focus(), 120);
+      }
+    };
+
+    const closeOverlay = (overlay) => {
+      overlay.removeAttribute('data-open');
+      unlockBody();
+    };
+
+    document.getElementById('search-trigger').addEventListener('click', () => {
+      haptic();
+      openOverlay(searchOverlay, searchInput);
+    });
+
+    document.getElementById('search-back').addEventListener('click', () => {
+      haptic();
+      closeOverlay(searchOverlay);
+    });
+
+    const filterResults = (container, query) => {
+      const normalized = query.trim().toLowerCase();
+      const items = container.querySelectorAll('[data-query]');
+      items.forEach((item) => {
+        const match = item.getAttribute('data-query').toLowerCase();
+        item.classList.toggle('hidden', normalized && !match.includes(normalized));
+      });
+    };
+
+    searchInput.addEventListener('input', (event) => {
+      filterResults(searchResults, event.target.value);
+    });
+
+    const readerOpen = (card) => {
+      const title = card.getAttribute('data-title');
+      const meta = card.getAttribute('data-meta');
+      const tags = card.getAttribute('data-tags');
+      const cover = card.getAttribute('data-cover');
+      readerTitle.textContent = title;
+      readerMeta.textContent = meta;
+      readerCover.style.background = cover;
+      readerTags.innerHTML = '';
+      tags.split(',').forEach((tag) => {
+        const chip = document.createElement('span');
+        chip.className = 'px-3 py-1 rounded-full text-xs bg-[color:var(--md-sys-color-surface-container-highest)] text-[color:var(--md-sys-color-on-surface-variant)]';
+        chip.textContent = tag.trim();
+        readerTags.appendChild(chip);
+      });
+      openOverlay(readerView);
+    };
+
+    document.getElementById('reader-back').addEventListener('click', () => {
+      haptic();
+      closeOverlay(readerView);
+    });
+
+    const libraryCards = Array.from(document.querySelectorAll('.library-card'));
+
+    const updateSelectionBar = () => {
+      const count = state.selectedCards.size;
+      selectionCount.textContent = `已选择 ${count} 项`;
+      if (count > 0 && !state.selectionMode) {
+        state.selectionMode = true;
+        document.body.classList.add('selection-mode');
+        contextualBar.classList.remove('-translate-y-full', 'opacity-0');
+        contextualBar.classList.add('translate-y-0', 'opacity-100');
+      }
+      if (count === 0 && state.selectionMode) {
+        exitSelection();
+      }
+    };
+
+    const toggleCardSelection = (card) => {
+      const id = card.getAttribute('data-id');
+      if (state.selectedCards.has(id)) {
+        state.selectedCards.delete(id);
+        card.classList.remove('ring-2', 'ring-[color:var(--md-sys-color-primary)]');
+      } else {
+        state.selectedCards.add(id);
+        card.classList.add('ring-2', 'ring-[color:var(--md-sys-color-primary)]');
+      }
+      updateSelectionBar();
+    };
+
+    const enterSelection = (card) => {
+      if (state.selectionMode) return;
+      state.selectionMode = true;
+      document.body.classList.add('selection-mode');
+      contextualBar.classList.remove('-translate-y-full', 'opacity-0');
+      contextualBar.classList.add('translate-y-0', 'opacity-100');
+      toggleCardSelection(card);
+    };
+
+    const exitSelection = () => {
+      state.selectionMode = false;
+      state.selectedCards.clear();
+      document.body.classList.remove('selection-mode');
+      contextualBar.classList.add('-translate-y-full', 'opacity-0');
+      contextualBar.classList.remove('translate-y-0', 'opacity-100');
+      libraryCards.forEach((card) => card.classList.remove('ring-2', 'ring-[color:var(--md-sys-color-primary)]'));
+    };
+
+    document.getElementById('selection-close').addEventListener('click', () => {
+      haptic();
+      exitSelection();
+    });
+
+    document.getElementById('selection-delete').addEventListener('click', () => {
+      haptic();
+      exitSelection();
+      showSnackbar('已移至回收站', 'UNDO', () => {});
+    });
+
+    libraryCards.forEach((card) => {
+      let pressTimer = null;
+      let longPressTriggered = false;
+      card.addEventListener('pointerdown', () => {
+        if (state.selectionMode) return;
+        longPressTriggered = false;
+        pressTimer = setTimeout(() => {
+          haptic();
+          longPressTriggered = true;
+          enterSelection(card);
+        }, 520);
+      });
+      card.addEventListener('pointerup', () => clearTimeout(pressTimer));
+      card.addEventListener('pointerleave', () => clearTimeout(pressTimer));
+      card.addEventListener('contextmenu', (event) => event.preventDefault());
+      card.addEventListener('click', () => {
+        if (longPressTriggered) {
+          longPressTriggered = false;
+          return;
+        }
+        if (state.selectionMode) {
+          haptic();
+          toggleCardSelection(card);
+        } else {
+          haptic();
+          readerOpen(card);
+        }
+      });
+    });
+
+    const openScanDialog = () => {
+      scanDialog.classList.remove('pointer-events-none');
+      scanDialog.classList.add('pointer-events-auto');
+      scanDialog.setAttribute('data-open', 'true');
+      scanScrim.setAttribute('data-open', 'true');
+      scanPanel.classList.remove('scale-90', 'opacity-0');
+      scanPanel.classList.add('scale-100', 'opacity-100');
+      lockBody();
+    };
+
+    const closeScanDialog = () => {
+      scanDialog.classList.add('pointer-events-none');
+      scanDialog.classList.remove('pointer-events-auto');
+      scanDialog.removeAttribute('data-open');
+      scanScrim.removeAttribute('data-open');
+      scanPanel.classList.add('scale-90', 'opacity-0');
+      scanPanel.classList.remove('scale-100', 'opacity-100');
+      scanSheet.removeAttribute('data-open');
+      unlockBody();
+    };
+
+    fab.addEventListener('click', () => {
+      haptic();
+      openScanDialog();
+    });
+
+    document.getElementById('scan-close').addEventListener('click', () => {
+      haptic();
+      closeScanDialog();
+    });
+
+    scanScrim.addEventListener('click', () => {
+      closeScanDialog();
+    });
+
+    document.getElementById('scan-done').addEventListener('click', () => {
+      haptic();
+      scanSheet.setAttribute('data-open', 'true');
+    });
+
+    document.getElementById('scan-save').addEventListener('click', () => {
+      haptic();
+      scanSheet.removeAttribute('data-open');
+      closeScanDialog();
+      showSnackbar('已保存到书架', 'UNDO', () => {});
+    });
+
+    const showSnackbar = (message, actionLabel, actionCallback) => {
+      snackbarMessage.textContent = message;
+      snackbarAction.textContent = actionLabel;
+      snackbar.classList.remove('opacity-0', 'translate-y-8', 'pointer-events-none');
+      snackbarAction.onclick = () => {
+        haptic();
+        actionCallback();
+        hideSnackbar();
+      };
+      if (state.snackbarTimer) {
+        clearTimeout(state.snackbarTimer);
+      }
+      state.snackbarTimer = setTimeout(() => {
+        hideSnackbar();
+      }, 3200);
+    };
+
+    const hideSnackbar = () => {
+      snackbar.classList.add('opacity-0', 'translate-y-8', 'pointer-events-none');
+    };
+
+    document.querySelectorAll('.add-to-library').forEach((button) => {
+      button.addEventListener('click', () => {
+        haptic();
+        button.textContent = 'Added';
+        button.classList.add('bg-[color:var(--md-sys-color-secondary-container)]', 'text-[color:var(--md-sys-color-on-secondary-container)]');
+        button.classList.remove('bg-[color:var(--md-sys-color-primary)]', 'text-[color:var(--md-sys-color-on-primary)]');
+        showSnackbar('Added to Library', 'UNDO', () => {
+          button.textContent = 'Add';
+          button.classList.add('bg-[color:var(--md-sys-color-primary)]', 'text-[color:var(--md-sys-color-on-primary)]');
+          button.classList.remove('bg-[color:var(--md-sys-color-secondary-container)]', 'text-[color:var(--md-sys-color-on-secondary-container)]');
+        });
+      });
+    });
+
+    const crowdSearch = document.getElementById('crowd-search');
+    const crowdResults = document.getElementById('crowd-results');
+    crowdSearch.addEventListener('input', (event) => {
+      filterResults(crowdResults, event.target.value);
+    });
+
+    const toggleDark = document.getElementById('toggle-dark');
+    toggleDark.addEventListener('change', (event) => {
+      haptic();
+      document.documentElement.classList.toggle('dark', event.target.checked);
+      event.target.closest('.toggle').setAttribute('data-checked', event.target.checked ? 'true' : 'false');
+    });
+
+    const toggleHaptic = document.getElementById('toggle-haptic');
+    toggleHaptic.addEventListener('change', (event) => {
+      state.haptics = event.target.checked;
+      event.target.closest('.toggle').setAttribute('data-checked', event.target.checked ? 'true' : 'false');
+    });
+
+    document.querySelectorAll('.toggle input[type="checkbox"]').forEach((input) => {
+      input.addEventListener('change', (event) => {
+        const wrapper = event.target.closest('.toggle');
+        if (wrapper) {
+          wrapper.setAttribute('data-checked', event.target.checked ? 'true' : 'false');
+        }
+      });
+    });
+
+    document.addEventListener('pointerdown', (event) => {
+      const target = event.target.closest('.ripple');
+      if (!target) return;
+      const rect = target.getBoundingClientRect();
+      const diameter = Math.max(rect.width, rect.height);
+      const ripple = document.createElement('span');
+      ripple.className = 'ripple-circle';
+      ripple.style.width = `${diameter}px`;
+      ripple.style.height = `${diameter}px`;
+      ripple.style.left = `${event.clientX - rect.left - diameter / 2}px`;
+      ripple.style.top = `${event.clientY - rect.top - diameter / 2}px`;
+      target.appendChild(ripple);
+      ripple.addEventListener('animationend', () => ripple.remove());
+    });
+
+    const carousel = document.getElementById('featured-carousel');
+    let ticking = false;
+    carousel.addEventListener('scroll', () => {
+      if (ticking) return;
+      window.requestAnimationFrame(() => {
+        const cards = carousel.querySelectorAll('[data-parallax]');
+        cards.forEach((card) => {
+          const parent = card.parentElement;
+          const rect = parent.getBoundingClientRect();
+          const offset = (rect.left + rect.width / 2 - window.innerWidth / 2) / window.innerWidth;
+          card.style.transform = `translateX(${offset * -18}px)`;
+        });
+        ticking = false;
+      });
+      ticking = true;
+    });
+
+    updateNav();
+    updateFab();
+    updateAppbar();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

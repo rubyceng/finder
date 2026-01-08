@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Finder App Prototype</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ["SF Pro Display", "SF Pro Text", "-apple-system", "BlinkMacSystemFont", "Helvetica Neue", "sans-serif"],
+            body: ["SF Pro Text", "-apple-system", "BlinkMacSystemFont", "Helvetica Neue", "sans-serif"],
+          },
+          boxShadow: {
+            ios: "0 28px 60px -35px rgba(15, 23, 42, 0.45)",
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .tap {
+      transition: transform 150ms ease, opacity 150ms ease;
+    }
+    .tap:active {
+      transform: scale(0.98);
+      opacity: 0.92;
+    }
+    .tab-btn {
+      color: #8e8e93;
+    }
+    .tab-btn.is-active {
+      color: #0a84ff;
+    }
+    .tab-dot {
+      opacity: 0;
+      transform: scale(0.6);
+      transition: all 200ms ease;
+    }
+    .tab-btn.is-active .tab-dot {
+      opacity: 1;
+      transform: scale(1);
+    }
+    .segment-btn.is-active {
+      background-color: #ffffff;
+      color: #111827;
+      box-shadow: 0 8px 24px -14px rgba(0, 0, 0, 0.45);
+    }
+    @media (prefers-color-scheme: dark) {
+      .segment-btn.is-active {
+        background-color: #0f172a;
+        color: #e5e7eb;
+        box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.7);
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#f2f2f7] dark:bg-[#0b0b0f] text-neutral-900 dark:text-neutral-100 font-body">
+  <div class="relative min-h-screen pb-[calc(96px+env(safe-area-inset-bottom))]">
+    <div class="pointer-events-none fixed inset-0 -z-10">
+      <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(88,140,255,0.25),_transparent_55%),radial-gradient(circle_at_20%_80%,_rgba(255,200,120,0.18),_transparent_45%)] dark:bg-[radial-gradient(circle_at_top,_rgba(24,55,110,0.55),_transparent_60%),radial-gradient(circle_at_20%_80%,_rgba(100,70,25,0.25),_transparent_50%)]"></div>
+    </div>
+
+    <main>
+      <section id="page-library" class="page">
+        <header class="px-5 pt-[calc(14px+env(safe-area-inset-top))]">
+          <div class="flex items-center justify-between">
+            <h1 class="text-[34px] leading-[1.1] font-semibold tracking-tight font-display">Finder</h1>
+            <button id="add-button" class="tap w-11 h-11 rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/60 dark:border-neutral-800 shadow-ios flex items-center justify-center">
+              <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <div class="mt-4">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"></i>
+              <input id="library-search" type="text" placeholder="搜索设备、房间、故障码 E3" class="w-full h-11 pl-11 pr-20 rounded-2xl bg-white/90 dark:bg-neutral-900/80 border border-neutral-200/70 dark:border-neutral-800/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a84ff]/40">
+              <button id="library-filter" class="tap absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-xl text-xs text-[#0a84ff] bg-[#0a84ff]/10">智能筛选</button>
+            </div>
+          </div>
+          <div class="mt-4 flex items-center gap-3 text-sm text-neutral-500">
+            <span class="px-3 py-1 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-white/60 dark:border-neutral-800">共 28 本</span>
+            <span class="px-3 py-1 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-white/60 dark:border-neutral-800">本周新增 3</span>
+            <span class="ml-auto text-[#0a84ff]">按最近</span>
+          </div>
+        </header>
+
+        <section class="mt-6 px-5">
+          <div class="grid grid-cols-2 gap-4" id="library-grid">
+            <article class="manual-item" data-title="松下蒸烤箱 NN-DS59" data-tags="厨房 蒸汽 E3" data-owner="林思意">
+              <button class="manual-open tap w-full text-left">
+                <div class="manual-cover relative aspect-[3/4] rounded-2xl overflow-hidden shadow-ios" style="background-image: linear-gradient(135deg, #1f2937 0%, #111827 55%, #0f172a 100%);">
+                  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_55%)]"></div>
+                  <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                    <i data-lucide="ellipsis" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <p class="text-xs uppercase tracking-[0.2em] text-white/70">Kitchen Lab</p>
+                    <h3 class="text-base font-semibold">松下蒸烤箱</h3>
+                    <p class="text-xs text-white/70">NN-DS59</p>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <p class="text-sm font-semibold">松下蒸烤箱 NN-DS59</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">厨房</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">E3</span>
+                  </div>
+                </div>
+              </button>
+            </article>
+
+            <article class="manual-item" data-title="海尔滚筒洗衣机 XQG100" data-tags="洗衣房 排水 异响" data-owner="张伟">
+              <button class="manual-open tap w-full text-left">
+                <div class="manual-cover relative aspect-[3/4] rounded-2xl overflow-hidden shadow-ios" style="background-image: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 55%, #38bdf8 100%);">
+                  <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.35),_transparent_60%)]"></div>
+                  <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/25 flex items-center justify-center">
+                    <i data-lucide="ellipsis" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <p class="text-xs uppercase tracking-[0.2em] text-white/70">Laundry</p>
+                    <h3 class="text-base font-semibold">海尔滚筒洗衣机</h3>
+                    <p class="text-xs text-white/70">XQG100</p>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <p class="text-sm font-semibold">海尔滚筒洗衣机 XQG100</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">洗衣房</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">排水</span>
+                  </div>
+                </div>
+              </button>
+            </article>
+
+            <article class="manual-item" data-title="美的空调 KFR-35GW" data-tags="客厅 E5 制冷" data-owner="王琳">
+              <button class="manual-open tap w-full text-left">
+                <div class="manual-cover relative aspect-[3/4] rounded-2xl overflow-hidden shadow-ios" style="background-image: linear-gradient(135deg, #164e63 0%, #14b8a6 55%, #5eead4 100%);">
+                  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.25),_transparent_50%)]"></div>
+                  <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/25 flex items-center justify-center">
+                    <i data-lucide="ellipsis" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <p class="text-xs uppercase tracking-[0.2em] text-white/70">Living</p>
+                    <h3 class="text-base font-semibold">美的空调</h3>
+                    <p class="text-xs text-white/70">KFR-35GW</p>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <p class="text-sm font-semibold">美的空调 KFR-35GW</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">客厅</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">E5</span>
+                  </div>
+                </div>
+              </button>
+            </article>
+
+            <article class="manual-item" data-title="索尼电视 XR-65X90J" data-tags="影音 HDMI 校准" data-owner="林思意">
+              <button class="manual-open tap w-full text-left">
+                <div class="manual-cover relative aspect-[3/4] rounded-2xl overflow-hidden shadow-ios" style="background-image: linear-gradient(135deg, #4c1d95 0%, #7c3aed 55%, #a855f7 100%);">
+                  <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.35),_transparent_60%)]"></div>
+                  <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/25 flex items-center justify-center">
+                    <i data-lucide="ellipsis" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <p class="text-xs uppercase tracking-[0.2em] text-white/70">Cinema</p>
+                    <h3 class="text-base font-semibold">索尼电视</h3>
+                    <p class="text-xs text-white/70">XR-65X90J</p>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <p class="text-sm font-semibold">索尼电视 XR-65X90J</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">影音</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">HDMI</span>
+                  </div>
+                </div>
+              </button>
+            </article>
+
+            <article class="manual-item" data-title="戴森吸尘器 V11" data-tags="清洁 电池 滤网" data-owner="刘洋">
+              <button class="manual-open tap w-full text-left">
+                <div class="manual-cover relative aspect-[3/4] rounded-2xl overflow-hidden shadow-ios" style="background-image: linear-gradient(135deg, #0f172a 0%, #334155 55%, #64748b 100%);">
+                  <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.2),_transparent_55%)]"></div>
+                  <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/25 flex items-center justify-center">
+                    <i data-lucide="ellipsis" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <p class="text-xs uppercase tracking-[0.2em] text-white/70">Care</p>
+                    <h3 class="text-base font-semibold">戴森吸尘器</h3>
+                    <p class="text-xs text-white/70">V11</p>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <p class="text-sm font-semibold">戴森吸尘器 V11</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">清洁</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">电池</span>
+                  </div>
+                </div>
+              </button>
+            </article>
+
+            <article class="manual-item" data-title="小米扫地机器人 2 Pro" data-tags="客厅 地图 语音" data-owner="陈晨">
+              <button class="manual-open tap w-full text-left">
+                <div class="manual-cover relative aspect-[3/4] rounded-2xl overflow-hidden shadow-ios" style="background-image: linear-gradient(135deg, #b45309 0%, #f97316 55%, #fb923c 100%);">
+                  <div class="absolute inset-0 bg-[radial-gradient(circle_at_bottom,_rgba(255,255,255,0.35),_transparent_60%)]"></div>
+                  <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-white/25 flex items-center justify-center">
+                    <i data-lucide="ellipsis" class="w-4 h-4 text-white"></i>
+                  </div>
+                  <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <p class="text-xs uppercase tracking-[0.2em] text-white/70">Home Bot</p>
+                    <h3 class="text-base font-semibold">小米扫地机器人</h3>
+                    <p class="text-xs text-white/70">2 Pro</p>
+                  </div>
+                </div>
+                <div class="mt-3">
+                  <p class="text-sm font-semibold">小米扫地机器人 2 Pro</p>
+                  <div class="mt-2 flex flex-wrap gap-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">客厅</span>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-white/80 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800">地图</span>
+                  </div>
+                </div>
+              </button>
+            </article>
+          </div>
+
+          <div id="library-empty" class="hidden mt-10 rounded-3xl border border-dashed border-neutral-300/80 dark:border-neutral-700/80 p-8 text-center text-neutral-500">
+            没有找到匹配的说明书
+          </div>
+        </section>
+      </section>
+
+      <section id="page-community" class="page hidden">
+        <header class="px-5 pt-[calc(14px+env(safe-area-inset-top))]">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-2xl font-semibold tracking-tight font-display">Community</h1>
+              <p class="text-sm text-neutral-500 mt-1">发现别人整理好的说明书</p>
+            </div>
+            <button id="share-trigger" class="tap px-4 py-2 rounded-2xl bg-[#0a84ff]/10 text-[#0a84ff] text-sm">公开说明书</button>
+          </div>
+          <div class="mt-4">
+            <div class="relative">
+              <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"></i>
+              <input id="community-search" type="text" placeholder="搜索社区说明书，例如 Sony 电视" class="w-full h-11 pl-11 pr-4 rounded-2xl bg-white/90 dark:bg-neutral-900/80 border border-neutral-200/70 dark:border-neutral-800/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0a84ff]/40">
+            </div>
+          </div>
+        </header>
+
+        <section class="mt-6">
+          <div class="flex items-center justify-between px-5">
+            <h2 class="text-base font-semibold">热门 / 推荐</h2>
+            <button class="tap text-sm text-[#0a84ff]">查看更多</button>
+          </div>
+          <div class="mt-4 flex gap-4 overflow-x-auto px-5 pb-2 no-scrollbar">
+            <article class="min-w-[220px] rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-ios p-4">
+              <div class="h-32 rounded-2xl bg-[linear-gradient(140deg,#0ea5e9,#38bdf8,#7dd3fc)]"></div>
+              <div class="mt-3">
+                <p class="text-sm font-semibold">格力空调 KFR-50LW</p>
+                <p class="text-xs text-neutral-500 mt-1">下载 4,382 · 上海市</p>
+              </div>
+              <button class="community-add tap mt-3 w-full py-2 rounded-xl bg-[#0a84ff] text-white text-sm">Add to Library</button>
+            </article>
+            <article class="min-w-[220px] rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-ios p-4">
+              <div class="h-32 rounded-2xl bg-[linear-gradient(140deg,#0f172a,#334155,#64748b)]"></div>
+              <div class="mt-3">
+                <p class="text-sm font-semibold">博世洗碗机 SMS68</p>
+                <p class="text-xs text-neutral-500 mt-1">下载 2,914 · 陆家嘴</p>
+              </div>
+              <button class="community-add tap mt-3 w-full py-2 rounded-xl bg-[#0a84ff] text-white text-sm">Add to Library</button>
+            </article>
+            <article class="min-w-[220px] rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-ios p-4">
+              <div class="h-32 rounded-2xl bg-[linear-gradient(140deg,#f97316,#fb923c,#fdba74)]"></div>
+              <div class="mt-3">
+                <p class="text-sm font-semibold">飞利浦咖啡机 EP3246</p>
+                <p class="text-xs text-neutral-500 mt-1">下载 1,832 · 徐汇</p>
+              </div>
+              <button class="community-add tap mt-3 w-full py-2 rounded-xl bg-[#0a84ff] text-white text-sm">Add to Library</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="mt-6 px-5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-semibold">求助悬赏</h2>
+            <button class="tap text-sm text-[#0a84ff]">发布求助</button>
+          </div>
+          <div class="mt-3 space-y-3">
+            <div class="tap rounded-2xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold">张伟 · 求 松下微波炉 NN-SM33</p>
+                  <p class="text-xs text-neutral-500 mt-1">奖励 35 元 · 上海市</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-neutral-400"></i>
+              </div>
+            </div>
+            <div class="tap rounded-2xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold">林思意 · 求 海信投影 C1</p>
+                  <p class="text-xs text-neutral-500 mt-1">奖励 20 元 · 深圳市</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-neutral-400"></i>
+              </div>
+            </div>
+            <div class="tap rounded-2xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 p-4 shadow-sm">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold">周玥 · 求 三菱空净 MA-83</p>
+                  <p class="text-xs text-neutral-500 mt-1">奖励 28 元 · 杭州市</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-neutral-400"></i>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-6 px-5">
+          <h2 class="text-base font-semibold">众包匹配</h2>
+          <div class="mt-3 rounded-2xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-sm p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold">Supabase 云端索引已连接</p>
+                <p class="text-xs text-neutral-500 mt-1">即时搜索社区说明书</p>
+              </div>
+              <i data-lucide="database" class="w-5 h-5 text-neutral-400"></i>
+            </div>
+            <div class="mt-4 space-y-3" id="community-results">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold">Sony 电视 KD-55X85J</p>
+                  <p class="text-xs text-neutral-500">匹配度 98% · 2,812 次下载</p>
+                </div>
+                <button class="community-add tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">Add to Library</button>
+              </div>
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-semibold">索尼回音壁 HT-A3000</p>
+                  <p class="text-xs text-neutral-500">匹配度 92% · 1,144 次下载</p>
+                </div>
+                <button class="community-add tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">Add to Library</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-6 px-5 pb-6">
+          <div class="rounded-3xl bg-[linear-gradient(140deg,#0a84ff,#4f46e5,#7c3aed)] text-white p-5 shadow-ios">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold">分享你的高清说明书</h3>
+                <p class="text-sm text-white/80 mt-2">脱敏确认后即可公开，帮助更多人。</p>
+              </div>
+              <i data-lucide="share-2" class="w-6 h-6 text-white"></i>
+            </div>
+            <button class="tap mt-4 px-4 py-2 rounded-xl bg-white/20 text-sm">开始共享</button>
+          </div>
+        </section>
+      </section>
+
+      <section id="page-settings" class="page hidden">
+        <header class="px-5 pt-[calc(14px+env(safe-area-inset-top))]">
+          <div>
+            <h1 class="text-2xl font-semibold tracking-tight font-display">Settings</h1>
+            <p class="text-sm text-neutral-500 mt-1">信任与控制中心</p>
+          </div>
+        </header>
+
+        <section class="mt-6 px-5">
+          <h2 class="text-xs uppercase tracking-[0.3em] text-neutral-500">Sync Center</h2>
+          <div class="mt-3 rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-sm divide-y divide-neutral-200/60 dark:divide-neutral-800">
+            <div class="px-4 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#0a84ff]/10 flex items-center justify-center">
+                  <i data-lucide="cloud" class="w-5 h-5 text-[#0a84ff]"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">iCloud 同步</p>
+                  <p class="text-xs text-neutral-500">上次同步：刚刚</p>
+                </div>
+              </div>
+              <span class="text-xs text-emerald-500">已连接</span>
+            </div>
+            <div class="px-4 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center">
+                  <i data-lucide="wifi" class="w-5 h-5 text-emerald-500"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">仅在 Wi-Fi 下同步</p>
+                  <p class="text-xs text-neutral-500">降低移动数据消耗</p>
+                </div>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" class="sr-only peer" checked>
+                <span class="w-12 h-7 bg-neutral-200 dark:bg-neutral-800 rounded-full peer-checked:bg-emerald-500 transition"></span>
+                <span class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition peer-checked:translate-x-5"></span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-6 px-5">
+          <h2 class="text-xs uppercase tracking-[0.3em] text-neutral-500">Storage</h2>
+          <div class="mt-3 rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-sm p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold">优化 iPhone 存储空间</p>
+                <p class="text-xs text-neutral-500">只保留缩略图，原件云端</p>
+              </div>
+              <i data-lucide="hard-drive" class="w-5 h-5 text-neutral-400"></i>
+            </div>
+            <div class="mt-4 bg-neutral-100/80 dark:bg-neutral-800/80 rounded-2xl p-1 flex">
+              <button class="segment-btn is-active tap flex-1 py-2 rounded-2xl text-xs" data-segment="optimize">优化存储</button>
+              <button class="segment-btn tap flex-1 py-2 rounded-2xl text-xs text-neutral-500" data-segment="original">保留原片</button>
+            </div>
+            <button class="tap mt-4 w-full py-2 rounded-xl border border-neutral-200/70 dark:border-neutral-800 text-sm">清理本地缓存</button>
+          </div>
+        </section>
+
+        <section class="mt-6 px-5">
+          <h2 class="text-xs uppercase tracking-[0.3em] text-neutral-500">Import / Export</h2>
+          <div class="mt-3 rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-sm divide-y divide-neutral-200/60 dark:divide-neutral-800">
+            <div class="px-4 py-4 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold">批量导出 PDF 压缩包</p>
+                <p class="text-xs text-neutral-500">数据逃生通道</p>
+              </div>
+              <button id="export-button" class="tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">导出</button>
+            </div>
+            <div class="px-4 py-4 flex items-center justify-between">
+              <div>
+                <p class="text-sm font-semibold">导入历史备份</p>
+                <p class="text-xs text-neutral-500">支持 zip / pdf</p>
+              </div>
+              <button class="tap px-3 py-1.5 rounded-xl border border-neutral-200/70 dark:border-neutral-700 text-xs">导入</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="mt-6 px-5 pb-10">
+          <h2 class="text-xs uppercase tracking-[0.3em] text-neutral-500">Security</h2>
+          <div class="mt-3 rounded-3xl bg-white/90 dark:bg-neutral-900/80 border border-white/70 dark:border-neutral-800 shadow-sm">
+            <div class="px-4 py-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-amber-500/10 flex items-center justify-center">
+                  <i data-lucide="shield" class="w-5 h-5 text-amber-500"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-semibold">本地加密</p>
+                  <p class="text-xs text-neutral-500">Face ID 自动解锁</p>
+                </div>
+              </div>
+              <span class="text-xs text-emerald-500">已开启</span>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <nav id="tabbar" class="fixed bottom-0 left-0 right-0 z-30 border-t border-white/60 dark:border-neutral-800 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl">
+    <div class="flex items-center justify-around px-8 pt-2 pb-[calc(10px+env(safe-area-inset-bottom))]">
+      <button class="tab-btn is-active tap flex flex-col items-center gap-1" data-tab="library">
+        <i data-lucide="book-open" class="w-5 h-5"></i>
+        <span class="text-[11px]">书架</span>
+        <span class="tab-dot w-1.5 h-1.5 rounded-full bg-[#0a84ff]"></span>
+      </button>
+      <button class="tab-btn tap flex flex-col items-center gap-1" data-tab="community">
+        <i data-lucide="globe" class="w-5 h-5"></i>
+        <span class="text-[11px]">社区</span>
+        <span class="tab-dot w-1.5 h-1.5 rounded-full bg-[#0a84ff]"></span>
+      </button>
+      <button class="tab-btn tap flex flex-col items-center gap-1" data-tab="settings">
+        <i data-lucide="settings" class="w-5 h-5"></i>
+        <span class="text-[11px]">设置</span>
+        <span class="tab-dot w-1.5 h-1.5 rounded-full bg-[#0a84ff]"></span>
+      </button>
+    </div>
+  </nav>
+
+  <div id="capture-overlay" class="fixed inset-0 z-40 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div id="capture-sheet" class="absolute inset-x-0 bottom-0 h-[90vh] rounded-t-[30px] bg-white dark:bg-neutral-900 border border-white/70 dark:border-neutral-800 shadow-ios transform translate-y-full transition-transform duration-300">
+      <div class="flex items-center justify-between px-5 pt-4">
+        <button id="capture-close" class="tap text-[#0a84ff] text-sm">取消</button>
+        <div class="text-sm text-neutral-500">扫描录入</div>
+        <button class="tap text-[#0a84ff] text-sm">引导</button>
+      </div>
+      <div class="mt-4 px-5">
+        <div class="relative h-[56vh] rounded-3xl overflow-hidden bg-neutral-950">
+          <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.15),_transparent_60%)]"></div>
+          <div class="absolute inset-6 border-2 border-emerald-300/70 rounded-2xl"></div>
+          <div class="absolute bottom-4 left-4 flex items-center gap-2 px-3 py-1 rounded-full bg-black/50 text-xs text-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-300"></span>
+            自动边缘检测中
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-11 h-11 rounded-xl bg-white/10 border border-white/20"></div>
+            <div class="w-11 h-11 rounded-xl bg-white/20 border border-white/30"></div>
+            <div class="w-11 h-11 rounded-xl bg-white/30 border border-white/40"></div>
+          </div>
+          <button id="capture-shutter" class="tap w-16 h-16 rounded-full border-4 border-white/80 flex items-center justify-center">
+            <span class="w-12 h-12 rounded-full bg-white"></span>
+          </button>
+          <button id="capture-done" class="tap px-4 py-2 rounded-xl bg-[#0a84ff] text-white text-sm">完成</button>
+        </div>
+        <p class="mt-3 text-xs text-neutral-500">拍摄 3 / 12 页 · 自动裁剪与飞入缩略图</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="tag-modal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="absolute left-6 right-6 top-1/2 -translate-y-1/2 rounded-3xl bg-white dark:bg-neutral-900 border border-white/70 dark:border-neutral-800 shadow-ios p-5">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold">打标签</h3>
+        <button id="tag-close" class="tap text-neutral-400">关闭</button>
+      </div>
+      <p class="text-sm text-neutral-500 mt-2">让未来的搜索更精准</p>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button class="tap px-3 py-1 rounded-full bg-[#0a84ff]/10 text-[#0a84ff] text-xs">厨房</button>
+        <button class="tap px-3 py-1 rounded-full bg-[#0a84ff]/10 text-[#0a84ff] text-xs">E3</button>
+        <button class="tap px-3 py-1 rounded-full bg-[#0a84ff]/10 text-[#0a84ff] text-xs">保修卡</button>
+        <button class="tap px-3 py-1 rounded-full bg-[#0a84ff]/10 text-[#0a84ff] text-xs">安装</button>
+      </div>
+      <input type="text" placeholder="自定义标签" class="mt-4 w-full h-10 rounded-2xl bg-neutral-100/80 dark:bg-neutral-800/80 border border-neutral-200/70 dark:border-neutral-700 px-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#0a84ff]/40">
+      <div class="mt-4 flex justify-end gap-3">
+        <button id="tag-skip" class="tap px-4 py-2 rounded-xl text-sm text-neutral-500">稍后</button>
+        <button id="tag-save" class="tap px-4 py-2 rounded-xl bg-[#0a84ff] text-white text-sm">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="reader-overlay" class="fixed inset-0 z-50 bg-[#f2f2f7] dark:bg-[#0b0b0f] opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="reader-content" class="absolute inset-0 opacity-0 translate-y-4 transition-all duration-300">
+      <div class="pt-[calc(14px+env(safe-area-inset-top))] px-5 flex items-center justify-between">
+        <button id="reader-close" class="tap flex items-center gap-2 text-[#0a84ff] text-sm">
+          <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          书架
+        </button>
+        <div class="flex items-center gap-3">
+          <button id="reader-bookmark" class="tap w-9 h-9 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-white/60 dark:border-neutral-800 flex items-center justify-center">
+            <i data-lucide="bookmark" class="w-4 h-4"></i>
+          </button>
+          <button id="reader-share" class="tap w-9 h-9 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-white/60 dark:border-neutral-800 flex items-center justify-center">
+            <i data-lucide="share-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <div class="mt-6 px-6">
+        <div class="rounded-3xl overflow-hidden bg-white dark:bg-neutral-900/70 border border-white/70 dark:border-neutral-800 shadow-ios">
+          <div id="reader-pages" class="flex transition-transform duration-500 ease-out">
+            <div class="reader-page min-w-full h-[55vh] p-6 flex flex-col justify-end" id="reader-cover">
+              <div class="text-white">
+                <p class="text-xs uppercase tracking-[0.3em] text-white/70">Manual</p>
+                <h2 id="reader-title" class="text-2xl font-semibold">说明书</h2>
+                <p id="reader-subtitle" class="text-sm text-white/70 mt-1">智能标签与目录</p>
+              </div>
+            </div>
+            <div class="reader-page min-w-full h-[55vh] p-6 bg-white dark:bg-neutral-900/90">
+              <h3 class="text-lg font-semibold">快速启动</h3>
+              <ul class="mt-4 space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
+                <li>1. 插电后按住电源键 3 秒启动。</li>
+                <li>2. 长按模式键切换自动 / 节能。</li>
+                <li>3. 出现 E3 请检查水位传感器。</li>
+              </ul>
+              <div class="mt-6 p-4 rounded-2xl bg-[#0a84ff]/10 text-[#0a84ff] text-sm">关键页已加入书签</div>
+            </div>
+            <div class="reader-page min-w-full h-[55vh] p-6 bg-white dark:bg-neutral-900/90">
+              <h3 class="text-lg font-semibold">维护与清洁</h3>
+              <p class="mt-3 text-sm text-neutral-600 dark:text-neutral-300">建议每 3 个月清理滤网，保持性能稳定。</p>
+              <div class="mt-6 grid grid-cols-2 gap-3">
+                <div class="rounded-2xl bg-neutral-100 dark:bg-neutral-800 p-3 text-xs text-neutral-500">
+                  更换滤芯周期
+                </div>
+                <div class="rounded-2xl bg-neutral-100 dark:bg-neutral-800 p-3 text-xs text-neutral-500">
+                  售后联系电话
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <button id="reader-prev" class="tap w-9 h-9 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-white/60 dark:border-neutral-800 flex items-center justify-center">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+          </button>
+          <span id="reader-page-indicator" class="text-sm text-neutral-500">1 / 3</span>
+          <button id="reader-next" class="tap w-9 h-9 rounded-full bg-white/70 dark:bg-neutral-900/70 border border-white/60 dark:border-neutral-800 flex items-center justify-center">
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="mt-4 flex gap-3">
+          <button class="tap flex-1 py-2 rounded-xl bg-[#0a84ff]/10 text-[#0a84ff] text-sm">关键页书签</button>
+          <button class="tap flex-1 py-2 rounded-xl bg-neutral-200/70 dark:bg-neutral-800/70 text-sm">双指缩放</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="context-backdrop" class="fixed inset-0 z-40 hidden"></div>
+  <div id="context-menu" class="fixed z-50 hidden">
+    <div class="min-w-[190px] rounded-2xl bg-white/95 dark:bg-neutral-900/95 border border-white/70 dark:border-neutral-800 shadow-ios backdrop-blur-xl overflow-hidden">
+      <button class="tap w-full flex items-center gap-3 px-4 py-3 text-sm">
+        <i data-lucide="eye" class="w-4 h-4"></i>
+        预览
+      </button>
+      <button class="tap w-full flex items-center gap-3 px-4 py-3 text-sm">
+        <i data-lucide="share-2" class="w-4 h-4"></i>
+        分享
+      </button>
+      <button class="tap w-full flex items-center gap-3 px-4 py-3 text-sm">
+        <i data-lucide="tag" class="w-4 h-4"></i>
+        编辑标签
+      </button>
+      <button class="tap w-full flex items-center gap-3 px-4 py-3 text-sm text-red-500">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+        删除
+      </button>
+    </div>
+  </div>
+
+  <div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-[calc(112px+env(safe-area-inset-bottom))] z-50 opacity-0 translate-y-2 transition-all duration-300">
+    <div class="px-4 py-2 rounded-full bg-neutral-900/90 text-white text-sm shadow-ios">已保存到书架</div>
+  </div>
+
+  <script>
+    const haptic = (pattern = 8) => {
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    };
+
+    const showToast = (message) => {
+      const toast = document.getElementById("toast");
+      toast.querySelector("div").textContent = message;
+      toast.classList.remove("opacity-0", "translate-y-2");
+      toast.classList.add("opacity-100", "translate-y-0");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.classList.add("opacity-0", "translate-y-2");
+        toast.classList.remove("opacity-100", "translate-y-0");
+      }, 1800);
+    };
+
+    const pages = {
+      library: document.getElementById("page-library"),
+      community: document.getElementById("page-community"),
+      settings: document.getElementById("page-settings"),
+    };
+
+    document.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const target = btn.dataset.tab;
+        Object.entries(pages).forEach(([key, el]) => {
+          el.classList.toggle("hidden", key !== target);
+        });
+        document.querySelectorAll(".tab-btn").forEach((tab) => {
+          tab.classList.toggle("is-active", tab.dataset.tab === target);
+        });
+        window.scrollTo({ top: 0, behavior: "instant" });
+        haptic(6);
+      });
+    });
+
+    const librarySearch = document.getElementById("library-search");
+    const manualItems = Array.from(document.querySelectorAll(".manual-item"));
+    const emptyState = document.getElementById("library-empty");
+
+    librarySearch.addEventListener("input", (event) => {
+      const query = event.target.value.trim().toLowerCase();
+      let visibleCount = 0;
+      manualItems.forEach((item) => {
+        const haystack = `${item.dataset.title} ${item.dataset.tags} ${item.dataset.owner}`.toLowerCase();
+        const visible = !query || haystack.includes(query);
+        item.classList.toggle("hidden", !visible);
+        if (visible) visibleCount += 1;
+      });
+      emptyState.classList.toggle("hidden", visibleCount !== 0);
+    });
+
+    const contextMenu = document.getElementById("context-menu");
+    const contextBackdrop = document.getElementById("context-backdrop");
+
+    const hideContextMenu = () => {
+      contextMenu.classList.add("hidden");
+      contextBackdrop.classList.add("hidden");
+    };
+
+    contextBackdrop.addEventListener("click", hideContextMenu);
+
+    const showContextMenu = (item, event) => {
+      const rect = item.getBoundingClientRect();
+      const menuRect = { width: 210, height: 210 };
+      const x = Math.min(event.clientX || rect.left + rect.width / 2, window.innerWidth - menuRect.width - 12);
+      const y = Math.min(event.clientY || rect.top + rect.height / 2, window.innerHeight - menuRect.height - 24);
+      contextMenu.style.left = `${Math.max(12, x)}px`;
+      contextMenu.style.top = `${Math.max(12, y)}px`;
+      contextMenu.classList.remove("hidden");
+      contextBackdrop.classList.remove("hidden");
+      haptic(10);
+    };
+
+    const readerOverlay = document.getElementById("reader-overlay");
+    const readerContent = document.getElementById("reader-content");
+    const readerCover = document.getElementById("reader-cover");
+    const readerTitle = document.getElementById("reader-title");
+    const readerSubtitle = document.getElementById("reader-subtitle");
+    const readerPages = document.getElementById("reader-pages");
+    const readerIndicator = document.getElementById("reader-page-indicator");
+    let readerPageIndex = 0;
+
+    const updateReader = () => {
+      readerPages.style.transform = `translateX(-${readerPageIndex * 100}%)`;
+      readerIndicator.textContent = `${readerPageIndex + 1} / 3`;
+    };
+
+    const openReader = (item) => {
+      const cover = item.querySelector(".manual-cover");
+      const rect = cover.getBoundingClientRect();
+      const hero = document.createElement("div");
+      hero.className = "fixed rounded-2xl shadow-ios z-50 transition-all duration-500 ease-[cubic-bezier(0.22,0.61,0.36,1)]";
+      hero.style.left = `${rect.left}px`;
+      hero.style.top = `${rect.top}px`;
+      hero.style.width = `${rect.width}px`;
+      hero.style.height = `${rect.height}px`;
+      hero.style.backgroundImage = cover.style.backgroundImage;
+      hero.style.backgroundSize = "cover";
+      hero.style.backgroundPosition = "center";
+      hero.dataset.origin = JSON.stringify(rect);
+      document.body.appendChild(hero);
+
+      readerCover.style.backgroundImage = cover.style.backgroundImage;
+      readerCover.style.backgroundSize = "cover";
+      readerCover.style.backgroundPosition = "center";
+      readerTitle.textContent = item.dataset.title;
+      readerSubtitle.textContent = `归档人：${item.dataset.owner}`;
+      readerPageIndex = 0;
+      updateReader();
+
+      readerOverlay.classList.remove("pointer-events-none", "opacity-0");
+      readerOverlay.classList.add("opacity-100");
+
+      requestAnimationFrame(() => {
+        const targetRect = readerCover.getBoundingClientRect();
+        hero.style.left = `${targetRect.left}px`;
+        hero.style.top = `${targetRect.top}px`;
+        hero.style.width = `${targetRect.width}px`;
+        hero.style.height = `${targetRect.height}px`;
+        hero.style.borderRadius = "24px";
+      });
+
+      setTimeout(() => {
+        readerContent.classList.remove("opacity-0", "translate-y-4");
+        readerContent.classList.add("opacity-100", "translate-y-0");
+      }, 200);
+
+      setTimeout(() => {
+        hero.remove();
+      }, 520);
+
+      haptic(8);
+    };
+
+    const closeReader = () => {
+      readerContent.classList.add("opacity-0", "translate-y-4");
+      readerContent.classList.remove("opacity-100", "translate-y-0");
+      readerOverlay.classList.add("opacity-0", "pointer-events-none");
+      readerOverlay.classList.remove("opacity-100");
+    };
+
+    document.getElementById("reader-close").addEventListener("click", () => {
+      closeReader();
+      haptic(6);
+    });
+
+    document.getElementById("reader-bookmark").addEventListener("click", () => {
+      showToast("已添加书签");
+      haptic(10);
+    });
+
+    document.getElementById("reader-share").addEventListener("click", () => {
+      showToast("分享卡片已生成");
+      haptic(8);
+    });
+
+    document.getElementById("reader-prev").addEventListener("click", () => {
+      readerPageIndex = Math.max(0, readerPageIndex - 1);
+      updateReader();
+      haptic(4);
+    });
+
+    document.getElementById("reader-next").addEventListener("click", () => {
+      readerPageIndex = Math.min(2, readerPageIndex + 1);
+      updateReader();
+      haptic(4);
+    });
+
+    manualItems.forEach((item) => {
+      const button = item.querySelector(".manual-open");
+      let pressTimer = null;
+      let longPressTriggered = false;
+
+      button.addEventListener("pointerdown", (event) => {
+        longPressTriggered = false;
+        pressTimer = setTimeout(() => {
+          longPressTriggered = true;
+          showContextMenu(item, event);
+        }, 420);
+      });
+
+      button.addEventListener("pointerup", () => clearTimeout(pressTimer));
+      button.addEventListener("pointerleave", () => clearTimeout(pressTimer));
+
+      button.addEventListener("contextmenu", (event) => {
+        event.preventDefault();
+        showContextMenu(item, event);
+      });
+
+      button.addEventListener("click", (event) => {
+        if (longPressTriggered) {
+          event.preventDefault();
+          return;
+        }
+        hideContextMenu();
+        openReader(item);
+      });
+    });
+
+    const captureOverlay = document.getElementById("capture-overlay");
+    const captureSheet = document.getElementById("capture-sheet");
+
+    const openCapture = () => {
+      captureOverlay.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        captureSheet.classList.remove("translate-y-full");
+      });
+      haptic(6);
+    };
+
+    const closeCapture = () => {
+      captureSheet.classList.add("translate-y-full");
+      setTimeout(() => {
+        captureOverlay.classList.add("hidden");
+      }, 260);
+    };
+
+    document.getElementById("add-button").addEventListener("click", openCapture);
+    document.getElementById("capture-close").addEventListener("click", closeCapture);
+
+    const tagModal = document.getElementById("tag-modal");
+
+    document.getElementById("capture-done").addEventListener("click", () => {
+      tagModal.classList.remove("hidden");
+      haptic(10);
+    });
+
+    document.getElementById("tag-close").addEventListener("click", () => {
+      tagModal.classList.add("hidden");
+    });
+
+    document.getElementById("tag-skip").addEventListener("click", () => {
+      tagModal.classList.add("hidden");
+      closeCapture();
+      showToast("已保存到书架");
+    });
+
+    document.getElementById("tag-save").addEventListener("click", () => {
+      tagModal.classList.add("hidden");
+      closeCapture();
+      showToast("标签已保存");
+      haptic(12);
+    });
+
+    document.querySelectorAll(".community-add").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const added = btn.dataset.added === "true";
+        btn.dataset.added = added ? "false" : "true";
+        btn.textContent = added ? "Add to Library" : "已添加";
+        btn.classList.toggle("bg-[#0a84ff]", added);
+        btn.classList.toggle("bg-emerald-500", !added);
+        btn.classList.toggle("text-white", true);
+        haptic(8);
+        showToast(added ? "已取消" : "已加入书架");
+      });
+    });
+
+    const communitySearch = document.getElementById("community-search");
+    const communityResults = document.getElementById("community-results");
+
+    communitySearch.addEventListener("input", (event) => {
+      const query = event.target.value.trim();
+      if (!query) {
+        communityResults.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold">Sony 电视 KD-55X85J</p>
+              <p class="text-xs text-neutral-500">匹配度 98% · 2,812 次下载</p>
+            </div>
+            <button class="community-add tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">Add to Library</button>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold">索尼回音壁 HT-A3000</p>
+              <p class="text-xs text-neutral-500">匹配度 92% · 1,144 次下载</p>
+            </div>
+            <button class="community-add tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">Add to Library</button>
+          </div>
+        `;
+      } else {
+        communityResults.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold">${query} Pro 说明书</p>
+              <p class="text-xs text-neutral-500">匹配度 96% · 782 次下载</p>
+            </div>
+            <button class="community-add tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">Add to Library</button>
+          </div>
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold">${query} 故障排查</p>
+              <p class="text-xs text-neutral-500">匹配度 88% · 310 次下载</p>
+            </div>
+            <button class="community-add tap px-3 py-1.5 rounded-xl bg-[#0a84ff] text-white text-xs">Add to Library</button>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+      document.querySelectorAll(".community-add").forEach((btn) => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = "true";
+        btn.addEventListener("click", () => {
+          const added = btn.dataset.added === "true";
+          btn.dataset.added = added ? "false" : "true";
+          btn.textContent = added ? "Add to Library" : "已添加";
+          btn.classList.toggle("bg-[#0a84ff]", added);
+          btn.classList.toggle("bg-emerald-500", !added);
+          btn.classList.toggle("text-white", true);
+          haptic(8);
+          showToast(added ? "已取消" : "已加入书架");
+        });
+      });
+    });
+
+    document.querySelectorAll("[data-segment]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-segment]").forEach((el) => el.classList.remove("is-active", "text-neutral-500"));
+        btn.classList.add("is-active");
+        btn.classList.remove("text-neutral-500");
+        haptic(4);
+      });
+    });
+
+    document.getElementById("export-button").addEventListener("click", () => {
+      showToast("导出任务已开始");
+      haptic(10);
+    });
+
+    document.querySelectorAll("input[type=checkbox]").forEach((toggle) => {
+      toggle.addEventListener("change", () => haptic(6));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!contextMenu.contains(event.target)) {
+        hideContextMenu();
+      }
+    });
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>
