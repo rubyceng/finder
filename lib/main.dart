@@ -37,7 +37,7 @@ class App extends StatelessWidget {
       // home: BottomMenuBarPage(),
 
       // SliverAppBar 示例
-      // home: CustomerSliverAppBarDelegate(),
+      // home: NestedScrollViewExample(),
       home: MainScreen(),
     );
   }

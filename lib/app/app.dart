@@ -13,6 +13,8 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     LibraryPage(), // 书架
+    const Center(child: Text("探索")),
+    const Center(child: Text("设置")),
     // ExplorePage(), // 探索
     // SettingsPage(), // 设置
   ];
